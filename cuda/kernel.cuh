@@ -2,6 +2,7 @@
 
 #include <cuda_runtime.h>
 
+
 /*
     
     Dicionary:
@@ -37,16 +38,17 @@
 
 
 typedef enum {
-    ACT_SIGMOID    = 0,
-    ACT_LEAKY_RELU = 1,
-    ACT_TANH       = 2
+
+    ACT_SIGMOID     = 0,
+    ACT_RELU        = 1,
+    ACT_LEAKY_RELU  = 2,
+    ACT_TANH        = 3
+
 } ActivationType;
 
 
-
-
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// activation functions: estão em utils.cu
+// activation functions: estão em actiavtions.cu
 
 
 __device__ float sigmoid(float x);
@@ -55,8 +57,12 @@ __device__ float sigmoid_backp(float x_activated);
 __device__ float leaky_relu(float x, float alpha);
 __device__ float leaky_relu_backp(float x_activated, float alpha);
 
+__device__ float relu(float x, float alpha);
+__device__ float relu_backp(float x_activated);
+
 __device__ float tanh_(float x);
 __device__ float tanh_backp(float x_activated);
+
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -72,6 +78,8 @@ __device__ float focal( float* probabilities,
                         int n_classes, 
                         float gamma);
 
+__device__ float huber(float pred, float target, float delta);
+
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // matmuls & layers: estão em fwd.cu
@@ -82,8 +90,8 @@ __global__ void matmul( float* X,
                         float* W,
                         float *b,
                         int batch,
-                        int in, 
-                        int out);
+                        int in_dim, 
+                        int out_dim);
 
 __global__ void apply_activation(float* X, int n, int activation_type);
 
@@ -91,27 +99,27 @@ __global__ void softmax(float* X, int batch, int n_classes);
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// backprop: estão em backprop.cu
+// backprop: estão em layers.cu
 
  
 __global__ void matmul_backp_X( float* X,
                                 float* dl_dy,   
                                 float* dl_dx,
                                 int batch,
-                                int in,
-                                int out);
+                                int in_dim,
+                                int out_dim);
 
 __global__ void matmul_backp_W( float* X,
                                 float* dl_dy,
                                 float* dl_dw,
                                 int batch,
-                                int in, 
-                                int out);
+                                int in_dim, 
+                                int out_dim);
 
 __global__ void matmul_backp_b( float* dl_dy,   
                                 float* dl_db,
                                 int batch,
-                                int out);
+                                int out_dim);
 
 __global__ void activation_backp(   float* X,
                                     float* dl_dy,
@@ -131,7 +139,7 @@ __global__ void softmax_backp(  float* probabilities,
 
 
 __global__ void adam(   float* X,
-                        float* dl_dy,
+                        float* dl_dw,
                         float* m,
                         float* v,
                         float lr,
@@ -142,40 +150,16 @@ __global__ void adam(   float* X,
                         int n);
 
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// dropout: WIP
-
-
-__global__ void dropout_forward(float* X, float* mask,
-                                float keep_prob, int n,
+__global__ void dropout_forward(float* activations,
+                                float* mask,
+                                float keep_prob,
+                                int n,
                                 unsigned long long seed);
 
-__global__ void dropout_backward(   float* dl_dy,
+__global__ void dropout_backprop(   float* dl_dy,
                                     float* dl_dx,
                                     float* mask,
                                     int n);
 
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//
-
-
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -15,11 +15,11 @@ __device__ float mse(float* pred, float* target, int n){
         mean squared error: penalizes large errors quadratically
 
     */
-    
+
     float cost = 0.0f;
 
     for(int i = 0; i < n; i++){
-        
+            
         float temp = (pred[i] - target[i]);
         cost += temp * temp; 
     }
@@ -58,7 +58,7 @@ __device__ float focal(float* probabilities, int label, int n_classes, float gam
     */
 
     const float correct_prob = probabilities[label];
-    const float focus =  __powf(-(1.0 - correct_prob), gamma);
+    const float focus =  __powf(1.0f - correct_prob, gamma);
 
     return -focus * __logf(correct_prob + EPSILON);
 
@@ -79,7 +79,7 @@ __device__ float huber(float pred, float target, float delta){
         return 0.5f * diff * diff;
     
     else 
-        return delta * (diff - 0.5 * delta);
+        return delta * (diff - 0.5f * delta);
 }
 
 

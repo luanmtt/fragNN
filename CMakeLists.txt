@@ -22,6 +22,7 @@ target_include_directories(FragNN PRIVATE
  
 target_link_libraries(FragNN PRIVATE
     CUDA::cudart
+    CUDA::curand
 )
  
 set_target_properties(FragNN PROPERTIES

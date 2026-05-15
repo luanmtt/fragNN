@@ -3,3 +3,5 @@ datasets/
 sim
 build/
 todo
+run
+.cache/clangd/index/
