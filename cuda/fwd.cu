@@ -1,5 +1,4 @@
-#include "kernels.cuh"
-#include "headers/activations.cuh"
+#include "kernel.cuh"
 
 #include <float.h>
 
@@ -86,7 +85,7 @@ __global__ void matmul( float* X,
 __global__ void apply_activation(float* X, int n, int activation_type){
     
 
-    const int i = blockIdx.x + blockDim.x + threadIdx.x;    
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;    
     if(i >= n)
         return;
     

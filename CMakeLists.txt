@@ -12,7 +12,13 @@ add_executable(FragNN
     main.cpp
     src/dataloader.cpp
     src/nn.cpp
-    cuda/kernel.cu
+    cuda/activations.cu
+    cuda/backprop.cu
+    cuda/fwd.cu
+    cuda/init.cu
+    cuda/loss.cu
+    cuda/nn.cu
+    cuda/utils.cu
 )
  
 target_include_directories(FragNN PRIVATE

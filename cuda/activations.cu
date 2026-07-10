@@ -1,5 +1,4 @@
 #include "kernel.cuh"
-#include "headers/activations.cuh"
 
 #include <cmath>
 

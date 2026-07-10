@@ -1,32 +1,22 @@
 #pragma once
-
 #include <cuda_runtime.h>
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// utils:
+// forward pass kernels — fwd.cu
 
 
-typedef enum {
+__global__ void matmul( float* X, 
+                        float* Y,
+                        float* W,
+                        float *b,
+                        int batch,
+                        int in_dim, 
+                        int out_dim);
 
-    ACT_SIGMOID     = 0,
-    ACT_RELU        = 1,
-    ACT_LEAKY_RELU  = 2,
-    ACT_TANH        = 3
+__global__ void apply_activation(float* X, int n, int activation_type);
 
-} ActivationType;
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// sub-headers:
-
-
-#include "headers/activations.cuh"
-#include "headers/loss.cuh"
-#include "headers/fwd.cuh"
-#include "headers/backprop.cuh"
-#include "headers/utils.cuh"
-#include "headers/init.cuh"
+__global__ void softmax(float* X, int batch, int n_classes);
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

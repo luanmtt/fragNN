@@ -3,25 +3,10 @@
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// backward pass kernels — backprop.cu
 
 
-__global__ void matmul( float* X, 
-                        float* Y,
-                        float* W,
-                        float *b,
-                        int batch,
-                        int in_dim, 
-                        int out_dim);
-
-__global__ void apply_activation(float* X, int n, int activation_type);
-
-__global__ void softmax(float* X, int batch, int n_classes);
-
-
-// ─────────────────────────────────────────────────────────────────────────────────────────────────
-
-
-__global__ void matmul_backp_X( float* X,
+__global__ void matmul_backp_X( float* W,
                                 float* dl_dy,   
                                 float* dl_dx,
                                 int batch,
@@ -51,8 +36,6 @@ __global__ void softmax_backp(  float* probabilities,
                                 float* dl_dx,
                                 int batch,
                                 int n_classes);
-
-
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,20 +1,48 @@
-#include "kernels.cuh"
-#include "headers/activations.cuh"
+#include "kernel.cuh"
+#include <__clang_cuda_builtin_vars.h>
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-__global__ void matmul_backp_X( float* X,
+__global__ void matmul_backp_X( float* W,
                                 float* dl_dy,   
                                 float* dl_dx,
                                 int batch,
                                 int in_dim,
                                 int out_dim){
-    
-   
-     
 
+    /*
+        // chain rule through the matrix multiplication
+        // dL/dX = dL/dY @ Wᵀ
+
+        one thread per element of dl_dx — total threads = batch * in_dim
+        row = i / in_dim    ← which sample
+        col = i % in_dim    ← which input neuron
+
+        sum = 0
+        for each output neuron k:
+            sum += dL_dY[row * out_dim + k] * W[col * out_dim + k]
+            //     dL_dY[sample, k]            Wᵀ[k, col] = W[col, k]
+
+        dL_dX[row * in_dim + col] = sum
+    */
+
+
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if(i >= batch * in_dim)
+        return;
+
+    const int row = i / in_dim;
+    const int col = i % in_dim;
+
+    float sum = 0.0f;
+
+    for(int k = 0; k < out_dim; k++){
+        sum += dl_dy[row * out_dim + k] * W[col * out_dim + k];
+    }
+
+    dl_dx[row * in_dim + col] = sum;
 
 }
 
@@ -46,7 +74,7 @@ __global__ void matmul_backp_W( float* X,
     
     
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if(i >= batch * in_dim)
+    if(i >= out_dim * in_dim)
         return;
     
     const int row = i / out_dim;
@@ -54,7 +82,7 @@ __global__ void matmul_backp_W( float* X,
 
     float sum = 0.0f;
 
-    for(int k = 0; k < in_dim; k++){
+    for(int k = 0; k < batch; k++){
         sum += X[k * in_dim + row] * dl_dy[k * out_dim + col];
 
     }
@@ -117,14 +145,14 @@ __global__ void matmul_backp_b( float* dl_dy,
     */
         
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if(i >= batch * out_dim)
+    if(i >= out_dim)
         return;
 
     float sum = 0.0f;
 
     for(int k = 0; k < batch; k++){
         
-        sum += dl_dy[i * out_dim + k];
+        sum += dl_dy[k * out_dim + i];
     }
        
     dl_db[i] = sum;
@@ -149,9 +177,11 @@ __global__ void activation_backp(   float* X,
             TANH       → dL_dX[i] = dL_dout[i] * tanh_grad(X[i])
     */
 
-    const int i = blockIdx.x * blockIdx.x + threadIdx.x;
-    if(i >+ n)
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if(i >= n)
         return;
+    
+    ActivationType act;
 
     switch(activation_type){
 
@@ -178,6 +208,27 @@ __global__ void activation_backp(   float* X,
     }
 
 }
+
+__global__ void softmax_backp(  float* probs,
+                                float* dl_dy,
+                                float* dl_dx,
+                                int batch,
+                                int n_classes){
+
+
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if( i >= batch) return;
+    
+    int offset = i * n_classes;
+
+    float dot = 0.0f;
+    for(int j = 0; j < n_classes - 1; j ++)
+        dot += dl_dy[offset + j] * probs[offset + j];
+    
+    for(int j = 0; j < n_classes - 1; j ++)
+         dl_dx[offset + j] = probs[offset + j] * (dl_dy[offset + j] - dot);
+
+} 
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

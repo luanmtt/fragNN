@@ -1,5 +1,4 @@
-#include "kernels.cuh"
-#include "headers/utils.cuh"
+#include "kernel.cuh"
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -49,14 +48,12 @@ __global__ void dropout_forward(float* activations,
     curand_init(seed, i, 0, &state);
     float rand_num = curand_uniform(&state);
 
-    float* output;
-
     if(rand_num > keep_prob)
         mask[i] = 0.0f;
     else
         mask[i] = 1.0f / keep_prob;
 
-    output[i] = activations[i] * mask[i];
+    activations[i] = activations[i] * mask[i];
      
 
 }

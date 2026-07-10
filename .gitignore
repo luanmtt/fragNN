@@ -1,7 +1,9 @@
 frag_nn/
+.frag_nn/
 datasets/
 sim
 build/
 todo
 run
 .cache/clangd/index/
+NN.md

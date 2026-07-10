@@ -1,32 +1,16 @@
 #pragma once
-
 #include <cuda_runtime.h>
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// utils:
+// initialization kernels — init.cu
 
 
-typedef enum {
+__global__ void HE(float* W, int n, int fan_in);
 
-    ACT_SIGMOID     = 0,
-    ACT_RELU        = 1,
-    ACT_LEAKY_RELU  = 2,
-    ACT_TANH        = 3
+__global__ void init_b(float* b, int n);
 
-} ActivationType;
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// sub-headers:
-
-
-#include "headers/activations.cuh"
-#include "headers/loss.cuh"
-#include "headers/fwd.cuh"
-#include "headers/backprop.cuh"
-#include "headers/utils.cuh"
-#include "headers/init.cuh"
+__global__ void zero_grad(float* dW, int n);
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
