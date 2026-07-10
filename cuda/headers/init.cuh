@@ -10,7 +10,7 @@ __global__ void HE(float* W, int n, int fan_in);
 
 __global__ void init_b(float* b, int n);
 
-__global__ void zero_grad(float* dW, int n);
+__global__ void zeroGradients(float* dW, int n);
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -25,7 +25,7 @@ __global__ void init_b(float* b, int n){
 }
 
 
-__global__ void zero_grad(float* dW, int n){
+__global__ void zeroGradients(float* dW, int n){
 
     /*
         // zero out gradient buffer before next step

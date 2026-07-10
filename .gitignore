@@ -7,3 +7,4 @@ todo
 run
 .cache/clangd/index/
 NN.md
+.cache/
