@@ -27,6 +27,6 @@ typedef enum {
 #include "headers/backprop.cuh"
 #include "headers/utils.cuh"
 #include "headers/init.cuh"
-
+#include "headers/metrics.cuh"
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
