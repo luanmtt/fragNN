@@ -22,9 +22,9 @@ __device__ float leaky_relu(float x, float alpha = 0.01f){
 }
 
 
-__device__ float relu(float x){
+__device__ float relu(float x, float alpha){
 
-    if(x < 0)
+    if(x < alpha)
         return 0.0f;
     else
         return x;
@@ -64,9 +64,9 @@ __device__ float leaky_relu_backp(float x_activated, float alpha){
 }
 
 
-__device__  float relu_backp(float x_activated){
+__device__  float relu_backp(float x_activated, float alpha){
 
-    float z = relu(x_activated);
+    float z = relu(x_activated, alpha);
 
     if(z > 0)
         return 1;

@@ -2,9 +2,10 @@ frag_nn/
 .frag_nn/
 datasets/
 sim
-build/
+.build/
 todo
 run
-.cache/clangd/index/
-NN.md
 .cache/
+NN.md
+outputs/
+weights.bin

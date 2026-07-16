@@ -17,13 +17,16 @@ add_executable(FragNN
     cuda/fwd.cu
     cuda/init.cu
     cuda/loss.cu
+    cuda/metrics.cu
     cuda/nn.cu
     cuda/utils.cu
+    utils/embellish.cu
 )
  
 target_include_directories(FragNN PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/cuda
+    ${CMAKE_SOURCE_DIR}/utils
 )
  
 target_link_libraries(FragNN PRIVATE

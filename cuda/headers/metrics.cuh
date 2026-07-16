@@ -49,7 +49,8 @@ void ROC(   float* probs,
             int* labels,
             int samples,
             int n_classes,
-            const char* prefix);
+            const char* prefix,
+            int verbosity);
 
 void metrics_router(    metrics_used flags,
                         Confusion& C,
@@ -57,7 +58,8 @@ void metrics_router(    metrics_used flags,
                         int* labels,
                         int samples,
                         int n_classes,
-                        const char* prefix);
+                        const char* prefix,
+                        int verbosity);
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

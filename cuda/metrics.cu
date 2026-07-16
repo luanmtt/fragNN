@@ -84,7 +84,7 @@ void confusion_accumulate(  Confusion& C,
             
             if(actual == c && predicted == c) C.TP[c]++;
             if(actual != c && predicted == c) C.FP[c]++;
-            if(actual == c && predicted != c) C.FP[c]++;
+            if(actual == c && predicted != c) C.FN[c]++;
 
         }
         
@@ -231,38 +231,17 @@ void ROC(   float* probs,
             int* labels,
             int samples,
             int n_classes,
-            const char* prefix){
+            const char* prefix,
+            int verbosity){
 
     /*
         gera a curva ROC (Receiver Operating Characteristic) para cada classe
         e calcula a AUC (Area Under the Curve).
 
-        a curva ROC plota TPR (taxa de verdadeiros positivos) vs FPR (taxa de falsos positivos)
-        em diferentes limiares de confiança.
-
-        para cada classe c:
-            1. extrair as probabilidades da classe c e os rótulos verdadeiros
-            2. ordenar por probabilidade decrescente
-            3. variar o limiar de 1.0 até 0.0, calculando TPR e FPR em cada ponto
-            4. salvar pontos em CSV para gráfico posterior
-            5. calcular AUC (área sob a curva) pela regra dos trapézios
-
-        exemplo: classe 0 (masculino), 5 amostras
-            probs_c   = [0.9, 0.7, 0.6, 0.3, 0.1]
-            is_pos    = [  1,   1,   0,   1,   0]  (amostra 0,1,3 são masculinos)
-
-            varrendo o limiar:
-                limiar=0.9: TPR=1/3=0.33, FPR=0/2=0.00
-                limiar=0.7: TPR=2/3=0.67, FPR=0/2=0.00
-                limiar=0.6: TPR=2/3=0.67, FPR=1/2=0.50
-                limiar=0.3: TPR=3/3=1.00, FPR=1/2=0.50
-                limiar=0.1: TPR=3/3=1.00, FPR=2/2=1.00
-
-            AUC = 0.83 (bom — acima de 0.5 é melhor que aleatório)
-
-        arquivos gerados: prefix_c0.csv, prefix_c1.csv, ...
-        ex: "results/roc_gender_c0.csv"
-    
+        verbosity:
+            0 = silencioso (só calcula, não imprime)
+            1 = imprime AUC por classe
+            2 = imprime AUC + gera CSV
     */  
     
     for(int c = 0; c < n_classes; c++){
@@ -276,12 +255,12 @@ void ROC(   float* probs,
         }
         
         for(int i = 0; i < samples; i++){
-            for(int j = 0; j < samples; j++){
+            for(int j = 0; j < samples - 1; j++){
 
-                if(probs[j] < probs[j+1]){
-                    float tmp_p = probs[j];
-                    probs[j] = probs[j+1];
-                    probs[j+1] = tmp_p;
+                if(probs_c[j] < probs_c[j+1]){
+                    float tmp_p = probs_c[j];
+                    probs_c[j] = probs_c[j+1];
+                    probs_c[j+1] = tmp_p;
 
                     int tmp_l = is_pos[j];
                     is_pos[j] = is_pos[j+1];
@@ -316,16 +295,22 @@ void ROC(   float* probs,
         }
 
         // ── 4. write CSV ──
-        char filename[256];
-        sprintf(filename, "%s_c%d.csv", prefix, c);
+        if(verbosity >= 2){
+            char filename[256];
+            sprintf(filename, "%s_c%d.csv", prefix, c);
 
-        FILE* f = fopen(filename, "w");
-        fprintf(f, "fpr,tpr\n");
+            FILE* f = fopen(filename, "w");
+            if(f){
+                fprintf(f, "fpr,tpr\n");
 
-        for(int i = 0; i < n_points; i++)
-            fprintf(f, "%.6f,%.6f\n", points[i].fpr, points[i].tpr);
+                for(int i = 0; i < n_points; i++)
+                    fprintf(f, "%.6f,%.6f\n", points[i].fpr, points[i].tpr);
 
-        fclose(f);
+                fclose(f);
+            } else {
+                printf("  [aviso] não foi possível criar %s\n", filename);
+            }
+        }
 
         // ── 5. AUC (trapezoidal rule) ──
         float auc = 0.0f;
@@ -335,7 +320,8 @@ void ROC(   float* probs,
             auc += dx * dy / 2.0f;
         }
 
-        printf("  class %d: AUC = %.4f\n", c, auc);
+        if(verbosity >= 1)
+            printf("  class %d: AUC = %.4f\n", c, auc);
 
         delete[] probs_c;
         delete[] is_pos;
@@ -354,43 +340,16 @@ void metrics_router(metrics_used flags,
                     int* labels,
                     int samples,
                     int n_classes,
-                    const char* prefix){
+                    const char* prefix,
+                    int verbosity){
 
     /*
-        roteador principal de métricas. verifica quais métricas foram solicitadas
-        no struct metrics_used e chama as funções correspondentes.
+        roteador principal de métricas.
 
-        exemplos de uso:
-
-            // só acurácia
-            metrics_used flags = {false, false, false, false, true};
-            metrics_router(flags, C, probs, labels, 1000, 3, "results/roc_gender");
-
-            // tudo
-            metrics_used flags = {true, true, true, true, true};
-            metrics_router(flags, C, probs, labels, 1000, 3, "results/roc_gender");
-
-            // precision + ROC
-            metrics_used flags = {true, false, false, true, false};
-            metrics_router(flags, C, probs, labels, 1000, 3, "results/roc_gender");
-
-        saída no terminal:
-            ────────────────────────────────────────
-              accuracy:    0.7500
-              precision:   0.7200 (macro)
-              recall:      0.6800 (macro)
-              f1:          0.6990 (macro)
-
-              per-class:
-              class           prec      rec       f1
-              0             0.8333   0.7692   0.8000
-              1             0.7900   0.8800   0.8325
-              2             0.5200   0.4500   0.4824
-
-              ROC curves:
-                class 0: AUC = 0.8320
-                class 1: AUC = 0.9100
-                class 2: AUC = 0.6200
+        verbosity:
+            0 = silencioso (só métricas macro)
+            1 = imprime per-class + AUC
+            2 = imprime per-class + AUC + gera CSVs
     */
                     
     float* recall_ = new float[n_classes];
@@ -420,7 +379,7 @@ void metrics_router(metrics_used flags,
             
         recall(C, recall_, n_classes);
         float macro_recall = macro_avg(recall_, n_classes);
-        printf("  accuracy:    %4f (macro)\n", macro_recall);
+        printf("  recall:      %.4f (macro)\n", macro_recall);
     }
     
     if(flags.F1){
@@ -441,22 +400,25 @@ void metrics_router(metrics_used flags,
     }
 
 
-    if(flags.PRECISION || flags.PRECISION || flags.F1){
+    if(verbosity >= 1 && (flags.PRECISION || flags.RECALL || flags.F1)){
+        int limit = (verbosity >= 2) ? n_classes : (n_classes > 10 ? 5 : n_classes);
 
         printf("\n  per-class:\n");
         printf("  %-12s %8s %8s %8s\n", "class", "prec", "rec", "f1");
-        for(int c = 0; c < n_classes; c++){
+        for(int c = 0; c < limit; c++){
             printf("  %-12d %8.4f %8.4f %8.4f\n",
                 c,
                 flags.PRECISION ? precision_[c] : 0.0f,
                 flags.RECALL    ? recall_[c]    : 0.0f,
                 flags.F1       ? f1_[c]        : 0.0f);
         }
+        if(limit < n_classes)
+            printf("  ... +%d classes (use verbosity=2 para ver todas)\n", n_classes - limit);
     }
 
     if(flags.ROC){
         printf("\n  ROC curves:\n");
-        ROC(probs, labels, samples, n_classes, prefix);
+        ROC(probs, labels, samples, n_classes, prefix, verbosity);
     }
 
     delete[] precision_;

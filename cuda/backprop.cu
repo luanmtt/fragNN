@@ -1,5 +1,6 @@
 #include "kernel.cuh"
-#include <__clang_cuda_builtin_vars.h>
+
+#include <cstdio>
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -181,8 +182,6 @@ __global__ void activation_backp(   float* X,
     if(i >= n)
         return;
     
-    ActivationType act;
-
     switch(activation_type){
 
         case 0: { // sigmoid

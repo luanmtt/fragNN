@@ -91,11 +91,14 @@ class NeuralNetwork {
                     int epochs, int batch_size);
 
         void test(  Network& net, Dataset& test_data,
-                    int batch_size);
+                    int batch_size,
+                    int verbosity = 1);
 
         void write_weights(Network& net, const char* path);
 
         void load_weights(Network& net, const char* path);
+
+        void destroy_network(Network& net);
 
 };
 

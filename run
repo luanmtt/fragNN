@@ -1,0 +1,9 @@
+#!/bin/bash
+
+run() {
+    local project_dir="${1:-.}"
+
+    echo "── compilando ──"
+    cmake -B .build && cmake --build .build --clean-first && .build/FragNN
+}
+run
